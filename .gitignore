@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+**/.cache/
+**/__pycache__/
+.venv/
+*.pyc
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache
+retrieval/.cache/
+*.cache
+.pytest_cache/
+.ruff_cache/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+
+# Environment variables
+.env
+.env.local
+
+# Data and model artifacts live on Hugging Face, not in this repository
+agents_database/
+agents_sort_database/
+task-agents_database/
+alr-model/
+
+# Generated datasets, checkpoints, and experiment outputs
+dataset/
+train/
+output/
+experiments/checkpoints/
+experiments/results/
+
+# Local migration workspace
+.hf-source/

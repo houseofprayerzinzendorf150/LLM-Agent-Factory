@@ -1,0 +1,82 @@
+[project]
+name = "llm-agent-factory"
+version = "0.1.0"
+description = "Generate and retrieve structured AI agents with semantic search and RAG"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "CC-BY-SA-4.0"
+keywords = ["agents", "llm", "rag", "retrieval", "multi-agent-systems"]
+dependencies = [
+    "accelerate>=0.33.0",
+    "bitsandbytes>=0.43.0",
+    "datasets>=2.19.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "peft>=0.12.0",
+    "torch>=2.2.0",
+    "transformers>=4.44.0",
+    "trl>=0.9.6",
+    "tqdm>=4.66.0",
+    "rich>=13.0.0",
+    "numpy>=1.24.0",
+    "sentence-transformers>=2.2.0",
+    "pydantic>=2.0.0",
+    "openai>=1.0.0",
+    "rustworkx-agent-framework",
+]
+
+[project.optional-dependencies]
+dedup = ["sentence-transformers>=2.2.0", "faiss-cpu>=1.7.0"]
+dedup-light = ["scikit-learn>=1.3.0"]
+retrieval = ["sentence-transformers>=2.2.0", "pydantic>=2.0.0"]
+retrieval-light = ["scikit-learn>=1.3.0", "pydantic>=2.0.0"]
+rag = ["sentence-transformers>=2.2.0", "pydantic>=2.0.0", "openai>=1.0.0"]
+dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0"]
+
+[project.scripts]
+agent-search = "retrieval.cli:main"
+agent-generate = "retrieval.rag_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/frontier-ai-next/LLM-Agent-Factory"
+Repository = "https://github.com/frontier-ai-next/LLM-Agent-Factory"
+Artifacts = "https://huggingface.co/frontier-ai/llm-agent-factory"
+
+[tool.setuptools]
+packages = ["retrieval", "retrieval.tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["retrieval/tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+extend = ".ruff.toml"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = ["prek>=0.3.1", "ruff>=0.14.14", "ty>=0.0.14"]
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
+    { index = "pytorch-cu118", marker = "sys_platform != 'darwin'" },
+]
+torchvision = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
+    { index = "pytorch-cu118", marker = "sys_platform != 'darwin'" },
+]
+rustworkx-agent-framework = { path = "./gmas-main" }

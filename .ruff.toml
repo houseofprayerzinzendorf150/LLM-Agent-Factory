@@ -1,0 +1,59 @@
+
+line-length = 120
+target-version = "py313"
+unsafe-fixes = true
+
+[lint]
+select = [
+    "ALL", # include all the rules, including new ones
+]
+ignore = [
+    #### modules
+    "ANN", # flake8-annotations
+    "COM", # flake8-commas
+    "C90", # mccabe complexity
+    "DJ",  # django
+    "EXE", # flake8-executable
+    "T10", # debugger
+    "TID", # flake8-tidy-imports
+
+    "RUF001", # ambiguous characters
+    "RUF002",
+    "RUF003",
+
+    "PLC0415",
+
+    #### specific rules
+    "D100",   # ignore missing docs
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D200",
+    "D205",
+    "D212",
+    "D400",
+    "D401",
+    "D415",
+    "TRY003", # external messages in exceptions are too verbose
+    "TD002",
+    "TD003",
+    "FIX002", # too verbose descriptions of todos
+]
+
+[lint.extend-per-file-ignores]
+# Also ignore `E402` in all `__init__.py` files.
+"__init__.py" = ["E402"]
+"notebooks/**" = ["ALL"]
+"tests/**" = [
+    "S101",
+    "PLR2004",
+    "PLR0913",
+    "ARG001",
+    "ARG002",
+    "SLF001",
+    "DTZ005",
+]
