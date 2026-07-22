@@ -10,11 +10,56 @@
 
 [Hugging Face artifacts](https://huggingface.co/frontier-ai/llm-agent-factory) · [Data guide](DATASETS.md) · [Extended quick start](QUICK_START.md) · [gMAS](https://github.com/frontier-ai-next/gMAS)
 
+![LLM Agent Factory generation and filtration pipeline](assets/build_agents.png)
+
 LLM Agent Factory turns a natural-language request into a reusable agent specification. It can search an existing agent library, retrieve the closest examples, and ask an OpenAI-compatible LLM to generate one or more adapted agents.
 
 Each agent includes a stable identifier, display name, persona, description, role, domain, and tool set.
 
 > **Repository split:** GitHub contains the source code, tests, configurations, and documentation. The large agent datasets, training outputs, and model artifacts remain on Hugging Face and are downloaded only when needed.
+
+## Benchmark results
+
+Reported accuracy and efficiency across three evaluation suites. Higher **Acc** is better; lower **TotalTok** and **TotT** are better. Token totals are shown in millions.
+
+### MMLU (N=2,070)
+
+| Family | Method | Acc (%) | TotalTok (M) | TotT (s) |
+| --- | --- | ---: | ---: | ---: |
+| Baselines | Non-agent | 81.9 | 0.7 | 2.09 |
+| Baselines | Qwen3-4B zero-shot | 81.2 | 2.3 | 2.04 |
+| Baselines | AutoGen | 80.9 | 2.4 | 6.55 |
+| ALR, single-agent | **ALR** | **82.3** | 0.8 | 1.62 |
+| ALR, single-agent | ALR-Distill (fine-tuned Qwen3-4B) | 82.0 | 1.6 | 1.77 |
+| ALR, multi-agent | **ALR Top-K** | **82.3** | 2.3 | 5.01 |
+| ALR, multi-agent | **ALR + Qwen3-4B zero-shot** | **82.3** | 2.6 | 2.84 |
+| ALR, multi-agent | **ALR + ALR-Distill** | **82.3** | 1.8 | 2.15 |
+
+### BIG-bench (N=39,185)
+
+| Family | Method | Acc (%) | TotalTok (M) | TotT (s) |
+| --- | --- | ---: | ---: | ---: |
+| Baselines | Non-agent | 84.7 | 16.7 | 2.60 |
+| Baselines | Qwen3-4B zero-shot | 84.3 | 48.3 | 2.68 |
+| Baselines | AutoGen | 83.4 | 47.0 | 5.25 |
+| ALR, single-agent | ALR | 85.6 | 17.2 | 2.10 |
+| ALR, single-agent | **ALR-Distill (fine-tuned Qwen3-4B)** | **85.7** | 33.4 | 2.47 |
+| ALR, multi-agent | ALR Top-K | 84.4 | 44.8 | 4.55 |
+| ALR, multi-agent | ALR + Qwen3-4B zero-shot | 84.9 | 51.7 | 3.15 |
+| ALR, multi-agent | ALR + ALR-Distill | 85.1 | 37.1 | 3.02 |
+
+### BBH (N=2,437)
+
+| Family | Method | Acc (%) | TotalTok (M) | TotT (s) |
+| --- | --- | ---: | ---: | ---: |
+| Baselines | Non-agent | 68.5 | 1.0 | 2.94 |
+| Baselines | Qwen3-4B zero-shot | 68.4 | 2.8 | 2.76 |
+| Baselines | AutoGen | 64.9 | 2.9 | 6.49 |
+| ALR, single-agent | ALR | 68.5 | 1.0 | 2.10 |
+| ALR, single-agent | ALR-Distill (fine-tuned Qwen3-4B) | 69.3 | 2.0 | 2.59 |
+| ALR, multi-agent | ALR Top-K | 69.1 | 2.8 | 8.42 |
+| ALR, multi-agent | ALR + Qwen3-4B zero-shot | 69.5 | 3.1 | 2.96 |
+| ALR, multi-agent | **ALR + ALR-Distill** | **69.6** | 2.2 | 3.15 |
 
 ## Core capabilities
 
