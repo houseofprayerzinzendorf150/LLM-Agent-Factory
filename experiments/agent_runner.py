@@ -1,6 +1,6 @@
 """
 Agent runner that takes an AgentSpec from LLM-Agent-Factory and runs it
-as a single agent via the DiMAS framework (GraphBuilder + MACPRunner).
+as a single agent via gMAS (GraphBuilder + MACPRunner).
 
 The agent answers benchmark questions using its persona/description.
 Tracks token usage and latency.
@@ -92,7 +92,7 @@ class AgentAnswer:
     predicted_answer: str
     correct_answer: str
     is_correct: bool
-    # Tokens spent on agent EXECUTION (answering the question via DiMAS)
+    # Tokens spent on agent EXECUTION (answering the question via gMAS)
     prompt_tokens: int = 0
     completion_tokens: int = 0
     total_tokens: int = 0
@@ -183,11 +183,11 @@ def _check_correct(predicted: str, correct: str, dataset_name: str) -> bool:
     return False
 
 
-def _build_dimas_answer_prompt(agent_spec: dict, question: str) -> str:
+def _build_gmas_answer_prompt(question: str) -> str:
     """
-    Build the instruction that DiMAS will use as the task query.
+    Build the instruction that gMAS will use as the task query.
 
-    DiMAS sends the task query + agent persona/description to the LLM.
+    gMAS sends the task query + agent persona/description to the LLM.
     We embed the benchmark question into the task query.
     """
     return (
@@ -209,7 +209,7 @@ def run_agent_on_sample(
     timeout: int = 120,
 ) -> AgentAnswer:
     """
-    Run a single agent on a single benchmark sample via DiMAS framework.
+    Run a single agent on a single benchmark sample via gMAS.
 
     Creates a single-agent RoleGraph using GraphBuilder, then executes it
     with MACPRunner. The agent's persona/description come from the agent_spec
@@ -228,8 +228,8 @@ def run_agent_on_sample(
         AgentAnswer with results and metrics.
 
     """
-    from rustworkx_framework.builder.graph_builder import BuilderConfig, GraphBuilder
-    from rustworkx_framework.execution.runner import MACPRunner, RunnerConfig
+    from gmas.builder import BuilderConfig, GraphBuilder
+    from gmas.execution import MACPRunner, RunnerConfig
 
     agent_id = agent_spec.get("agent_id", "agent")
     display_name = agent_spec.get("display_name", "AI Assistant")
@@ -237,14 +237,14 @@ def run_agent_on_sample(
     description = agent_spec.get("description", "")
     tools = agent_spec.get("tools", [])
 
-    # Build the task query for DiMAS
-    task_query = _build_dimas_answer_prompt(agent_spec, sample.question)
+    # Build the task query for gMAS
+    task_query = _build_gmas_answer_prompt(sample.question)
 
     # --- Track execution tokens via a wrapper around the OpenAI client ---
     exec_tokens = {"prompt": 0, "completion": 0, "total": 0}
 
     def llm_caller(prompt: str) -> str:
-        """LLM caller for DiMAS MACPRunner that tracks token usage."""
+        """LLM caller for gMAS MACPRunner that tracks token usage."""
 
         def _call():
             return client.chat.completions.create(
@@ -271,7 +271,7 @@ def run_agent_on_sample(
 
     t0 = time.perf_counter()
     try:
-        # Step 1: Build single-agent graph via DiMAS GraphBuilder
+        # Step 1: Build a single-agent graph with gMAS GraphBuilder
         builder_config = BuilderConfig(
             include_task_node=True,
             validate=True,
@@ -320,29 +320,29 @@ def run_agent_on_sample(
 
         execution_time = time.perf_counter() - t0
 
-        # ── Use DiMAS MACPResult metrics ──────────────────────────────
-        # result.total_tokens  — DiMAS-estimated tokens (word-based)
-        # result.total_time    — DiMAS-measured execution time
+        # ── Use gMAS MACPResult metrics ───────────────────────────────
+        # result.total_tokens  — gMAS-estimated tokens (word-based)
+        # result.total_time    — gMAS-measured execution time
         # result.metrics       — ExecutionMetrics with detailed breakdown
         #
-        # We prefer exact API tokens (exec_tokens) but also store DiMAS
+        # We prefer exact API tokens (exec_tokens) but also store gMAS
         # metrics for cross-validation.
-        dimas_total_tokens = result.total_tokens
-        dimas_total_time = result.total_time
+        gmas_total_tokens = result.total_tokens
+        gmas_total_time = result.total_time
 
-        # Use exact API tokens if available, fall back to DiMAS estimate
+        # Use exact API tokens if available, fall back to the gMAS estimate
         final_prompt = exec_tokens["prompt"]
         final_completion = exec_tokens["completion"]
         final_total = exec_tokens["total"]
-        if final_total == 0 and dimas_total_tokens > 0:
-            # API didn't return usage — use DiMAS estimate
-            final_total = dimas_total_tokens
+        if final_total == 0 and gmas_total_tokens > 0:
+            # API didn't return usage — use the gMAS estimate
+            final_total = gmas_total_tokens
 
-        # Use DiMAS execution time if our wall-clock is off
-        if dimas_total_time > 0:
-            execution_time = min(execution_time, dimas_total_time + 0.01)
+        # Use gMAS execution time if our wall-clock is off
+        if gmas_total_time > 0:
+            execution_time = min(execution_time, gmas_total_time + 0.01)
 
-        # Extract the answer from DiMAS result
+        # Extract the answer from the gMAS result
         response_text = result.final_answer or ""
         if not response_text and result.messages:
             # Try to get from agent messages

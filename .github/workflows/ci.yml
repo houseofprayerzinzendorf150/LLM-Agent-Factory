@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,7 +34,12 @@ jobs:
           retrieval
           script
           experiments
-          gmas-main/rustworkx_framework
+          gmas-main/src/gmas
+
+      - name: Verify gMAS submodule
+        run: |
+          test -f gmas-main/pyproject.toml
+          test -d gmas-main/src/gmas
 
       - name: Enforce code-only repository boundary
         shell: python
@@ -58,4 +65,3 @@ jobs:
           ]
           if oversized:
               raise SystemExit(f"Files larger than 10 MiB must live on Hugging Face: {oversized}")
-

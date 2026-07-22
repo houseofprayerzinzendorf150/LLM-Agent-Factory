@@ -1,0 +1,4 @@
+[submodule "gmas-main"]
+	path = gmas-main
+	url = https://github.com/frontier-ai-next/gMAS.git
+	branch = main

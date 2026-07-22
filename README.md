@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/frontier-ai-next/LLM-Agent-Factory/actions/workflows/ci.yml/badge.svg)](https://github.com/frontier-ai-next/LLM-Agent-Factory/actions/workflows/ci.yml)
 [![GitHub tag](https://img.shields.io/github/v/tag/frontier-ai-next/LLM-Agent-Factory?display_name=tag&sort=semver)](https://github.com/frontier-ai-next/LLM-Agent-Factory/tags)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python 3.12–3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/license-CC%20BY--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face-yellow)](https://huggingface.co/frontier-ai/llm-agent-factory)
 
@@ -25,16 +25,22 @@ Each agent includes a stable identifier, display name, persona, description, rol
 | Generation | RAG-based agent creation through OpenAI-compatible endpoints |
 | Agent tooling | Scripts for generation, curation, deduplication, task creation, and SFT preparation |
 | Evaluation | Reproducible experiment runner, checkpoints, metrics, and benchmark scenarios |
-| Multi-agent runtime | The bundled `gmas-main` framework used by the experiment harness |
+| Multi-agent runtime | The official [gMAS](https://github.com/frontier-ai-next/gMAS) repository, pinned as a Git submodule |
 
 ## Install
 
-LLM Agent Factory requires Python 3.12 or newer.
+LLM Agent Factory requires Python 3.12 or 3.13.
 
 ```bash
-git clone https://github.com/frontier-ai-next/LLM-Agent-Factory.git
+git clone --recurse-submodules https://github.com/frontier-ai-next/LLM-Agent-Factory.git
 cd LLM-Agent-Factory
-python -m pip install -e ".[rag]"
+python -m pip install -e ./gmas-main -e ".[rag]"
+```
+
+If the repository was cloned without submodules, initialize gMAS before installing:
+
+```bash
+git submodule update --init --recursive
 ```
 
 Copy the environment template when generation through an LLM is required:
@@ -112,7 +118,7 @@ The first retrieval run builds an index in `retrieval/.cache/`; later runs reuse
 LLM-Agent-Factory/
 ├── config/          # Small role, domain, and tool vocabularies
 ├── experiments/     # Evaluation runner, metrics, and checkpoints
-├── gmas-main/       # Multi-agent runtime used by experiments
+├── gmas-main/       # Official gMAS Git submodule used by experiments
 ├── retrieval/       # Search, embeddings, reranking, RAG, CLI, and tests
 ├── script/          # Dataset generation, curation, deduplication, and training scripts
 ├── DATASETS.md      # External artifact manifest and download commands
@@ -126,6 +132,16 @@ LLM-Agent-Factory/
 python -m pip install -e ".[dev]"
 pytest retrieval/tests -v
 ```
+
+The submodule is pinned to a reviewed gMAS commit. To update it intentionally:
+
+```bash
+git submodule update --remote --merge gmas-main
+```
+
+Changes to the multi-agent runtime belong in the upstream
+[frontier-ai-next/gMAS](https://github.com/frontier-ai-next/gMAS) repository;
+this project only contains its integration layer.
 
 Large or generated artifacts must stay outside Git history. CI checks this boundary on every push and pull request.
 
