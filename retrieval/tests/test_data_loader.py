@@ -3,6 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -171,6 +172,33 @@ class TestLoadDataset:
         try:
             records = list(load_dataset(temp_path))
             assert len(records) == 1
+        finally:
+            temp_path.unlink()
+
+    def test_jsonl_is_not_reopened_as_a_json_document(self):
+        """Test that a recognized JSONL file is read only once."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
+            f.write(
+                json.dumps(
+                    {
+                        "input": "Query",
+                        "output": {
+                            "agent_id": "agent",
+                            "display_name": "Agent",
+                        },
+                    }
+                )
+                + "\n"
+            )
+            temp_path = Path(f.name)
+
+        try:
+            real_open = open
+            with patch("builtins.open", wraps=real_open) as mocked_open:
+                records = list(load_dataset(temp_path))
+
+            assert len(records) == 1
+            assert mocked_open.call_count == 1
         finally:
             temp_path.unlink()
 

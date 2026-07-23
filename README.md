@@ -155,7 +155,8 @@ print(agents[0]["display_name"])
 4. The RAG layer combines those examples with the request.
 5. The configured LLM returns a validated, structured agent specification.
 
-The first retrieval run builds an index in `retrieval/.cache/`; later runs reuse it.
+The task-agent dataset keeps every question/agent pair. For retrieval, the first run builds one embedding per unique
+agent, shows live progress, and stores the completed index in `retrieval/.cache/`; later runs reuse that cache.
 
 ## Repository layout
 

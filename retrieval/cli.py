@@ -97,8 +97,9 @@ def interactive_mode(
         if not results:
             continue
 
-        for _result in results:
-            pass
+        for result in results:
+            sys.stdout.write(f"{format_agent_raw(result.agent)}\n")
+        sys.stdout.flush()
 
 
 def single_query_mode(
@@ -110,8 +111,9 @@ def single_query_mode(
     """Run a single query and output results as raw JSONL (one agent per line)."""
     results = retriever.search(query, top_k=top_k, use_reranker=use_reranker)
 
-    for _result in results:
-        pass
+    for result in results:
+        sys.stdout.write(f"{format_agent_raw(result.agent)}\n")
+    sys.stdout.flush()
 
 
 def main() -> None:

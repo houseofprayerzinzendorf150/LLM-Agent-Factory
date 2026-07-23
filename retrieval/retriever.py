@@ -1,5 +1,6 @@
 """Main retriever module for agent search with optional reranking."""
 
+import sys
 import time
 
 from retrieval.config import DatasetType, RetrievalConfig
@@ -10,6 +11,32 @@ from retrieval.models import AgentRecord, AgentSpec, RetrievalResult
 
 def _log(msg: str) -> None:
     """Print a status message to stderr so it doesn't interfere with JSON output."""
+    sys.stderr.write(f"{msg}\n")
+    sys.stderr.flush()
+
+
+def _get_index_records(records: list[AgentRecord], *, deduplicate: bool) -> list[AgentRecord]:
+    """
+    Select the records represented in the embedding index.
+
+    Task-agent datasets legitimately contain many questions for the same agent.
+    The current embedding text contains agent fields only, so those rows would
+    otherwise produce identical vectors. All source records remain available
+    for statistics; only the vector index is collapsed by ``agent_id``.
+    """
+    if not deduplicate:
+        return records
+
+    unique_records: list[AgentRecord] = []
+    seen_agent_ids: set[str] = set()
+    for record in records:
+        agent_id = record.agent.agent_id
+        if agent_id and agent_id in seen_agent_ids:
+            continue
+        if agent_id:
+            seen_agent_ids.add(agent_id)
+        unique_records.append(record)
+    return unique_records
 
 
 class AgentRetriever:
@@ -33,6 +60,7 @@ class AgentRetriever:
         self.config = config or RetrievalConfig()
         self.verbose = verbose
         self._records: list[AgentRecord] = []
+        self._index_records: list[AgentRecord] = []
         self._index: EmbeddingIndex | None = None
         self._reranker: Reranker | None = None
         self._initialized = False
@@ -58,7 +86,11 @@ class AgentRetriever:
         t0 = time.time()
         dataset_paths = self.config.get_dataset_paths()
         self._records = load_multiple_datasets(dataset_paths)
-        self._status(f"      Loaded {len(self._records):,} records ({time.time() - t0:.1f}s)")
+        self._index_records = _get_index_records(self._records, deduplicate=self.config.deduplicate_results)
+        unique_agents = len({record.agent.agent_id for record in self._records if record.agent.agent_id})
+        self._status(
+            f"      Loaded {len(self._records):,} records / {unique_agents:,} unique agents ({time.time() - t0:.1f}s)"
+        )
 
         # Create embedder and index
         self._status(f"[2/3] Loading embedding model ({self.config.embedding_model.split('/')[-1]})...")
@@ -69,14 +101,16 @@ class AgentRetriever:
 
         # Try to load cached index
         cache_path = self.config.get_cache_path()
-        if self.config.use_cached_index and self._index.load(cache_path):
+        cache_loaded = self.config.use_cached_index and self._index.load(cache_path)
+        cache_matches_records = cache_loaded and len(self._index.texts) == len(self._index_records)
+        if cache_matches_records:
             self._status(f"[3/3] Loaded cached index from {cache_path.name}")
         else:
             # Build index
-            self._status(f"[3/3] Building embedding index for {len(self._records):,} records...")
-            self._status("      This may take 3-5 minutes on first run (CPU). The index will be cached for future use.")
+            self._status(f"[3/3] Building embedding index for {len(self._index_records):,} agents...")
+            self._status("      Progress is shown below. The completed index will be cached for future use.")
             t0 = time.time()
-            texts = [r.agent.get_indexable_text() for r in self._records]
+            texts = [record.agent.get_indexable_text() for record in self._index_records]
             self._index.build(texts)
             self._status(f"      Index built ({time.time() - t0:.1f}s)")
 
@@ -125,15 +159,11 @@ class AgentRetriever:
             self.initialize()
 
         k = top_k or self.config.top_k
-        min_score = threshold or self.config.similarity_threshold
+        min_score = threshold if threshold is not None else self.config.similarity_threshold
         should_rerank = use_reranker if use_reranker is not None else self.config.use_reranker
 
         # For reranking, retrieve more candidates
-        retrieve_k = self.config.rerank_top_k if should_rerank and self._reranker else k
-
-        # Account for deduplication
-        if self.config.deduplicate_results:
-            retrieve_k = retrieve_k * 2
+        retrieve_k = max(self.config.rerank_top_k, k) if should_rerank and self._reranker else k
 
         # Stage 1: Dense retrieval
         assert self._index is not None, "Index not built. Call initialize() first."
@@ -147,13 +177,14 @@ class AgentRetriever:
             if score < min_score:
                 continue
 
-            record = self._records[idx]
+            record = self._index_records[idx]
 
             # Deduplicate by agent_id
             if self.config.deduplicate_results:
-                if record.agent.agent_id in seen_agent_ids:
+                if record.agent.agent_id and record.agent.agent_id in seen_agent_ids:
                     continue
-                seen_agent_ids.add(record.agent.agent_id)
+                if record.agent.agent_id:
+                    seen_agent_ids.add(record.agent.agent_id)
 
             candidates.append((record, score))
 
@@ -208,6 +239,7 @@ class AgentRetriever:
         self.config.dataset_type = new_type
         self._initialized = False
         self._records = []
+        self._index_records = []
         self._index = None
 
     def get_unique_agents(self) -> list[AgentSpec]:
@@ -233,6 +265,7 @@ class AgentRetriever:
         return {
             "total_records": len(self._records),
             "unique_agents": unique_agents,
+            "indexed_records": len(self._index_records),
             "dataset_type": self.config.dataset_type,
             "embedding_model": self.config.embedding_model,
             "reranker_enabled": self._reranker is not None,

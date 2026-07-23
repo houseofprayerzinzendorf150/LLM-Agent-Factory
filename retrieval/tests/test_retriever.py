@@ -85,6 +85,7 @@ class TestAgentRetriever:
 
         assert retriever._initialized
         assert len(retriever._records) == 4  # Including duplicate
+        assert len(retriever._index_records) == 3  # One vector per unique agent
 
     def test_search_basic(self, temp_dataset):
         """Test basic search functionality."""
@@ -118,10 +119,11 @@ class TestAgentRetriever:
         retriever = AgentRetriever(config)
         retriever.initialize()
 
-        results = retriever.search("math algebra calculus", top_k=10)
+        results = retriever.search("math algebra calculus", top_k=3)
 
         agent_ids = [r.agent.agent_id for r in results]
         # No duplicates
+        assert len(agent_ids) == 3
         assert len(agent_ids) == len(set(agent_ids))
 
     def test_search_without_deduplication(self, temp_dataset):
@@ -140,6 +142,7 @@ class TestAgentRetriever:
 
         # At least we get results (may contain duplicates)
         assert len(results) > 0
+        assert len(retriever._index_records) == 4
 
     def test_search_top_k(self, temp_dataset):
         """Test that top_k limits results."""
@@ -154,7 +157,7 @@ class TestAgentRetriever:
 
         results = retriever.search("help me", top_k=2)
 
-        assert len(results) <= 2
+        assert len(results) == 2
 
     def test_search_threshold(self, temp_dataset):
         """Test similarity threshold filtering."""
@@ -189,7 +192,23 @@ class TestAgentRetriever:
 
         assert stats["total_records"] == 4
         assert stats["unique_agents"] == 3  # math_tutor appears twice
+        assert stats["indexed_records"] == 3
         assert "agents_eng" in stats["dataset_type"]
+
+    def test_status_messages_are_written_to_stderr(self, temp_dataset, capsys):
+        """Test that long-running initialization can report progress."""
+        config = RetrievalConfig(
+            dataset_type=DatasetType.ENG,
+            agents_db_dir=temp_dataset,
+            use_cached_index=False,
+        )
+        retriever = AgentRetriever(config)
+
+        retriever._status("Building index: 10%")
+
+        captured = capsys.readouterr()
+        assert "Building index: 10%" in captured.err
+        assert captured.out == ""
 
     def test_get_unique_agents(self, temp_dataset):
         """Test getting unique agents."""

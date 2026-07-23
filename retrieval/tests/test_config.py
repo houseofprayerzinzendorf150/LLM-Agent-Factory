@@ -82,7 +82,12 @@ class TestRetrievalConfig:
 
             assert cache_path.parent.exists()
             assert "agents_eng" in cache_path.name
+            assert "unique" in cache_path.name
             assert cache_path.suffix == ".pt"  # PyTorch format
+
+            records_path = config.model_copy(update={"deduplicate_results": False}).get_cache_path()
+            assert "records" in records_path.name
+            assert records_path != cache_path
 
     def test_custom_values(self):
         """Test configuration with custom values."""

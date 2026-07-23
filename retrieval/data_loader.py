@@ -28,6 +28,7 @@ def load_dataset(file_path: Path) -> Iterator[AgentRecord]:
         raise FileNotFoundError(msg)
 
     # Try JSONL format first (one JSON per line)
+    parsed_jsonl = False
     try:
         with open(file_path, encoding="utf-8") as f:
             first_line = f.readline().strip()
@@ -42,12 +43,16 @@ def load_dataset(file_path: Path) -> Iterator[AgentRecord]:
                         data = json.loads(line)
                         # Check if it's a JSONL record (has "input" and "output" keys)
                         if "input" in data and "output" in data:
+                            parsed_jsonl = True
                             yield AgentRecord.from_json(data, str(file_path))
                             continue
                     except json.JSONDecodeError:
                         pass
     except Exception:
         pass
+
+    if parsed_jsonl:
+        return
 
     # If JSONL didn't work, try JSON format (single file with agents array)
     try:

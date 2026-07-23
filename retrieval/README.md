@@ -438,4 +438,5 @@ A: Pass parameters via CLI (`--model`, `--url`, `--api-key`) or create `LLMConfi
 
 **Q: What to do if first run is slow?**
 
-A: On first run, embedding index is built (~2 minutes). It's cached in `retrieval/.cache/` and subsequent runs are fast.
+A: The first run loads every task-agent record, then builds one embedding per unique agent while showing progress. The
+index is cached in `retrieval/.cache/`, so subsequent runs skip embedding generation.

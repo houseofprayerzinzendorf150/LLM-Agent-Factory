@@ -126,6 +126,7 @@ class RetrievalConfig(BaseModel):
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         # Include model name in cache path
         model_suffix = self.embedding_model.split("/")[-1]
+        index_mode = "unique" if self.deduplicate_results else "records"
         # Get dataset_type as string (handles both enum and string)
         dataset_type_str = self.dataset_type.value if isinstance(self.dataset_type, DatasetType) else self.dataset_type
-        return self.cache_dir / f"index_{dataset_type_str}_{model_suffix}.pt"
+        return self.cache_dir / f"index_{dataset_type_str}_{model_suffix}_{index_mode}.pt"

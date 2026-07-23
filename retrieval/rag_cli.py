@@ -275,7 +275,9 @@ def single_query_mode(config: RAGConfig, query: str):
         rag.initialize()
         agents = rag.generate(query)
 
-        format_agent_output(agents, config.output_format)
+        output = format_agent_output(agents, config.output_format)
+        sys.stdout.write(f"{output}\n")
+        sys.stdout.flush()
 
         return 0
     except Exception as e:
