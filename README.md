@@ -5,7 +5,7 @@
 [![CI](https://github.com/frontier-ai-next/LLM-Agent-Factory/actions/workflows/ci.yml/badge.svg)](https://github.com/frontier-ai-next/LLM-Agent-Factory/actions/workflows/ci.yml)
 [![GitHub tag](https://img.shields.io/github/v/tag/frontier-ai-next/LLM-Agent-Factory?display_name=tag&sort=semver)](https://github.com/frontier-ai-next/LLM-Agent-Factory/tags)
 [![Python 3.12–3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/license-CC%20BY--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face-yellow)](https://huggingface.co/frontier-ai/llm-agent-factory)
 
 [Hugging Face artifacts](https://huggingface.co/frontier-ai/llm-agent-factory) · [Data guide](DATASETS.md) · [Extended quick start](QUICK_START.md) · [gMAS](https://github.com/frontier-ai-next/gMAS)
@@ -195,4 +195,4 @@ Large or generated artifacts must stay outside Git history. CI checks this bound
 
 This source release was migrated from Hugging Face revision [`505aa098`](https://huggingface.co/frontier-ai/llm-agent-factory/commit/505aa09857889bc679f2b914e2c33527051c37a8). The canonical heavy artifacts remain attached to that Hugging Face repository.
 
-The source release metadata declares the project under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/).
+The source code in this repository is released under the [MIT License](LICENSE). Datasets, model weights, and other heavy artifacts remain on Hugging Face and are governed by the metadata published with those artifacts.
